@@ -1,8 +1,8 @@
-http://codezine.jp/article/detail/443 �򻲹ͤ˼������� Pure Perl RangeCoder
-�ޤ�������ư���Ƥʤ������Ϥˤ�äƤ����������/����Ǥ��ʤ���
+http://codezine.jp/article/detail/443 を参考に実装した Pure Perl RangeCoder
+まだちゃんと動いてない。入力によっては正しく符号/復号できない。
 
 * TODO
 
-- ������ư���褦�� (finish() ���꤬������)
-- ���ȥ꡼��I/O�б� (�ե�����ϥ�ɥ�������ä� I/O)
-- use integer ��ư���褦�� (��ư���������� Range Coder �Ǥʤ�...)
+- 正しく動作するように (finish() 周りが怪しい)
+- ストリームI/O対応 (ファイルハンドルを受け取って I/O)
+- use integer で動くように (浮動小数点だと Range Coder でない...)
