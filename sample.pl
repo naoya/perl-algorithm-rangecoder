@@ -34,5 +34,6 @@ $rc->freq    = \@freq;
 $rc->cumfreq = \@cum;
 $rc->debug++;
 
-say $rc->decode( $rc->encode($str) )
+say "decoded: ", $rc->decode( $rc->encode($str) );
+say "origin:  ", $str;
 

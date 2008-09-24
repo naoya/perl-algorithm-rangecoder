@@ -13,9 +13,13 @@ use Algorithm::RangeCoder::Util;
 
 __PACKAGE__->mk_accessors(qw/out R L D buffer carryN start debug counter freq cumfreq/);
 
-use constant MASK      => 0xFFFFFFFF;
-use constant TOP       => 1 << 24;
-use constant UCHAR_MAX => 0x100;
+use constant INIT_RANGE => 0xFFFFFFFF;
+use constant MASK       => 0xFFFFFFFF;
+use constant TOP        => 1 << 24;
+use constant UCHAR_MAX  => 0x100;
+
+say "MAX_RANGE: ", bitstr( INIT_RANGE );
+say "MASK:      ", bitstr( MASK );
 
 sub init {
     my ($self, $binref) = @_;
@@ -28,7 +32,7 @@ sub init {
     $self->start   = 1;
     $self->counter = 0;
 
-    $self->R       = 0xFFFFFFFF;
+    $self->R       = INIT_RANGE;
     $self->L       = 0;
     $self->D       = 0;
 }
@@ -53,14 +57,14 @@ sub _encode {
     my ($self, $low, $high, $total) = @_;
 
     if ($self->debug) {
-        say sprintf "L(%d): %s", $self->counter, bitstr($self->L);
-        say sprintf "R(%d): %s", $self->counter, bitstr($self->R);
+        # say sprintf "L(%d): %s", $self->counter, bitstr($self->L);
+        # say sprintf "R(%d): %s", $self->counter, bitstr($self->R);
     }
 
     my $r = floor( $self->R / $total );
 
     if ($self->debug) {
-        say sprintf "r(%d): %s", $self->counter, bitstr($r);
+        # say sprintf "r(%d): %s", $self->counter, bitstr($r);
     }
 
     if ($high < $total) {
@@ -69,10 +73,18 @@ sub _encode {
         $self->R -= $r * $low;
     }
 
-    my $newL = $self->L + ($r * $low) & MASK;
+    my $newL = $self->L + ($r * $low);
     $newL &= MASK;
 
+    ## 怪しい
+    ## L:  11111111111111111111000000000000
+    ## nL: 11111111111111111111111111111111
+    ## で L < nL にならない
+    say 'nL: ', bitstr($newL),    " ", $newL;
+    say 'L:  ', bitstr($self->L), " ", $self->L;
+
     if ($newL < $self->L) {
+        die;
         $self->buffer++;
 
         for (; $self->carryN > 0; $self->carryN--) {
@@ -92,15 +104,15 @@ sub _encode {
             $self->buffer = $newBuffer;
             $self->start  = undef;
         }
-        elsif ($newBuffer == 0xFF) {
+        elsif (($newBuffer & 0xFF) == 0xFF) {
             $self->carryN++;
         }
         else {
             put($self->buffer, $self->out);
             for (; $self->carryN != 0; $self->carryN--) {
-                put(0xff, $self->out);
+                put(0xFF, $self->out);
             }
-            $self->buffer = $newBuffer;
+            $self->buffer = ($newBuffer & 0xFF);
         }
 
         $self->L = ($self->L << 8) & MASK;
