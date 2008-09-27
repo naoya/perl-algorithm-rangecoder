@@ -47,9 +47,15 @@ sub encode {
     return ${$self->out};
 }
 
+## FIXME: floating point arithmetic
+sub div ($$) {
+    my ($x, $y) = @_;
+    floor($x/$y);
+}
+
 sub _encode {
     my ($self, $low, $high, $total) = @_;
-    my $r = floor( $self->R / $total );
+    my $r = div($self->R, $total);
 
     if ($high < $total) {
         $self->R = $r * ($high - $low);
@@ -129,8 +135,8 @@ sub _decode {
     my $self = shift;
     my $total = $self->cumfreq->[-1];
 
-    my $r   = floor($self->R / $total);
-    my $pos = uint_min( $total - 1, floor($self->D / $r) );
+    my $r   = div($self->R, $total);
+    my $pos = uint_min( $total - 1, div($self->D, $r) );
 
     my $code = search_code( $pos, $self->cumfreq );
     my $low  = $self->cumfreq->[ $code ];
