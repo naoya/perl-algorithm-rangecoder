@@ -12,7 +12,6 @@ use Algorithm::RangeCoder::Util;
 __PACKAGE__->mk_accessors(qw/out R L D buffer carryN start freq cumfreq/);
 
 use constant INIT_RANGE => 0xFFFFFFFF;
-use constant MASK       => 0xFFFFFFFF;
 use constant TOP        => uint_shl(1, 24);
 use constant UCHAR_MAX  => 0x100;
 
@@ -144,7 +143,7 @@ sub _decode {
         $self->R -= $r * $low;
     }
 
-    while ($self->R < TOP) {
+    while (uint_cmp($self->R, TOP) == -1) {
         $self->R = uint_shl($self->R, 8);
         $self->D = uint_shl($self->D, 8) | get($self->out);
     }
