@@ -5,7 +5,7 @@ use base qw/Class::Accessor::Lvalue::Fast/;
 
 use Carp;
 use POSIX qw/floor/;
-use Data::Integer qw/uint uint_madd uint_min/;
+use Data::Integer qw/uint uint_madd uint_min uint_cmp uint_shl uint_shr/;
 
 use Algorithm::RangeCoder::Util;
 
@@ -13,7 +13,7 @@ __PACKAGE__->mk_accessors(qw/out R L D buffer carryN start freq cumfreq/);
 
 use constant INIT_RANGE => 0xFFFFFFFF;
 use constant MASK       => 0xFFFFFFFF;
-use constant TOP        => 1 << 24;
+use constant TOP        => uint_shl(1, 24);
 use constant UCHAR_MAX  => 0x100;
 
 sub init {
@@ -59,7 +59,7 @@ sub _encode {
 
     my $newL = uint_madd($self->L, ($r * $low));
 
-    if ($newL < $self->L) {
+    if ( uint_cmp($newL, $self->L) == -1 ) {
         $self->buffer++;
 
         for (; $self->carryN > 0; $self->carryN--) {
@@ -69,14 +69,14 @@ sub _encode {
     }
     $self->L = $newL;
 
-    while ($self->R < TOP) {
-        my $newBuffer = ($self->L >> 24) & 0xFF;
+    while ( uint_cmp($self->R, TOP) == -1 ) {
+        my $newBuffer = uint_shr($self->L, 24) & 0xFF;
 
         if ($self->start) {
             $self->buffer = $newBuffer;
             $self->start  = undef;
         }
-        elsif (($newBuffer & 0xFF) == 0xFF) {
+        elsif ($newBuffer == 0xFF) {
             $self->carryN++;
         }
         else {
@@ -87,8 +87,8 @@ sub _encode {
             $self->buffer = ($newBuffer & 0xFF);
         }
 
-        $self->L = ($self->L << 8) & MASK;
-        $self->R <<= 8;
+        $self->L = uint_shl($self->L, 8);
+        $self->R = uint_shl($self->R, 8);
     }
 }
 
@@ -105,8 +105,8 @@ sub _finish {
     }
 
     for (my $i = 0; $i < 4; $i++) {
-        put($self->L >> 24, $self->out);
-        $self->L = ($self->L << 8) & MASK;
+        put(uint_shr($self->L, 24), $self->out);
+        $self->L = uint_shl($self->L, 8);
     }
 }
 
@@ -115,7 +115,7 @@ sub decode {
     $self->init(\$bin);
 
     for (my $i = 0; $i < 4; $i++) {
-        $self->D = ($self->D << 8) | get($self->out);
+        $self->D = uint_shl($self->D, 8) | get($self->out);
     }
 
     my $out;
@@ -145,8 +145,8 @@ sub _decode {
     }
 
     while ($self->R < TOP) {
-        $self->R <<= 8;
-        $self->D = ($self->D << 8) | get($self->out);
+        $self->R = uint_shl($self->R, 8);
+        $self->D = uint_shl($self->D, 8) | get($self->out);
     }
 
     return $code;
