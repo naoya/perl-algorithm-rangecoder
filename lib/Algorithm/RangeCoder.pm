@@ -47,14 +47,6 @@ sub encode {
     return ${$self->out};
 }
 
-## FIXME: using floating point arithmetic
-## 1. Numbers are automatically converted to floating point format.
-## 2. 'use integer' treats integrals as signed but we want unsigned integers.
-sub div ($$) {
-    my ($x, $y) = @_;
-    floor($x/$y);
-}
-
 sub _encode {
     my ($self, $low, $high, $total) = @_;
     my $r = div($self->R, $total);
@@ -177,6 +169,14 @@ sub search_code {
     }
 
     return $i;
+}
+
+## FIXME: using floating point arithmetic
+## 1. Perl automatically converts numbers to floating point format.
+## 2. 'use integer' treats integrals as signed but we want unsigned integers.
+sub div {
+    my ($x, $y) = @_;
+    floor($x/$y);
 }
 
 1;
