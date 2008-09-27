@@ -8,6 +8,7 @@ use POSIX qw/floor/;
 use List::Util qw/min/;
 use Params::Validate qw/validate_pos SCALARREF/;
 use Perl6::Say;
+use Data::Integer qw/uint uint_madd/;
 
 use Algorithm::RangeCoder::Util;
 
@@ -57,36 +58,41 @@ sub _encode {
     my ($self, $low, $high, $total) = @_;
 
     if ($self->debug) {
-        # say sprintf "L(%d): %s", $self->counter, bitstr($self->L);
-        # say sprintf "R(%d): %s", $self->counter, bitstr($self->R);
+        say sprintf "L(%d): %s", $self->counter, bitstr($self->L);
+        say sprintf "R(%d): %s", $self->counter, bitstr($self->R);
     }
 
     my $r = floor( $self->R / $total );
 
     if ($self->debug) {
-        # say sprintf "r(%d): %s", $self->counter, bitstr($r);
+        say sprintf "r(%d): %s", $self->counter, bitstr($r);
     }
 
+    ## R ã®æ›´æ–°
     if ($high < $total) {
         $self->R = $r * ($high - $low);
     } else {
         $self->R -= $r * $low;
     }
 
-    my $newL = $self->L + ($r * $low);
+    my $newL = uint_madd($self->L, ($r * $low));
+    if ($newL > 0xffffffff) {
+        if ($self->debug) {
+            warn 'L overflow, treat newL as overflowed bits';
+        }
+        $newL = $newL >> 31;
+    }
     $newL &= MASK;
 
-    ## ²ø¤·¤¤
-    ## L:  11111111111111111111000000000000
-    ## nL: 11111111111111111111111111111111
-    ## ¤Ç L < nL ¤Ë¤Ê¤é¤Ê¤¤
-    say 'nL: ', bitstr($newL),    " ", $newL;
-    say 'L:  ', bitstr($self->L), " ", $self->L;
+    ## æ€ªã—ã„?
+    if ($self->debug) {
+        say 'L:  ', bitstr($self->L), " ", $self->L;
+        say 'nL: ', bitstr($newL),    " ", $newL;
+    }
 
     if ($newL < $self->L) {
-        die;
+        warn 'treat overflowed bits';
         $self->buffer++;
-
         for (; $self->carryN > 0; $self->carryN--) {
             put($self->buffer, $self->out);
             $self->buffer = 0;
@@ -122,9 +128,14 @@ sub _encode {
     $self->counter++;
 }
 
+
 sub _finish {
     my $self = shift;
-    put($self->buffer, $self->out);
+
+    ## æ€ªã—ã„?
+    if ($self->buffer) {
+        put($self->buffer, $self->out);
+    }
 
     for (; $self->carryN != 0; $self->carryN--) {
         put(0xff, $self->out);
