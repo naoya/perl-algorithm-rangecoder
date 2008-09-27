@@ -38,7 +38,6 @@ say "origin:  ", $str;
 say "decoded: ", $rc->decode( $bin );
 
 my $rate = 1 - length($bin) / length($str);
-my $bit  = unpack('b*', $bin);
 
 say sprintf "%d bytes => %d bytes (%.1f%%)", length $str, length $bin, $rate * 100;
 

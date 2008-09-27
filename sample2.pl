@@ -9,7 +9,7 @@ use Algorithm::RangeCoder;
 
 my $text = shift or die "usage: $0 <text>";
 
-## µ­¹æ¤Î½Ğ¸½ÉÑÅÙ¤òµá¤á¤ë
+## è¨˜å·ã®å‡ºç¾é »åº¦ã‚’æ±‚ã‚ã‚‹
 my @freq;
 for (my $i = 0; $i < UCHAR_MAX; $i++) {
     $freq[$i] = 0;
@@ -19,7 +19,7 @@ for my $c ( unpack('C*', $text) ) {
     $freq[$c]++;
 }
 
-## µ­¹æ¤ÎÎßÀÑ½Ğ¸½ÉÑÅÙ¤òµá¤á¤ë
+## è¨˜å·ã®ç´¯ç©å‡ºç¾é »åº¦ã‚’æ±‚ã‚ã‚‹
 my @cum = (0);
 for (my $i = 0; $i < UCHAR_MAX; $i++) {
     $cum[$i + 1] = $cum[$i] + $freq[$i];
