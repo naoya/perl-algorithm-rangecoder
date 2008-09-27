@@ -3,4 +3,5 @@ http://codezine.jp/article/detail/443 を参考に実装した Pure Perl RangeCo
 * TODO
 
 - ストリームI/O対応 (ファイルハンドルを受け取って I/O)
-- 浮動小数点計算している箇所を全て整数演算に
+- 浮動小数点計算している乗算を unsigned int で計算
+- 出現頻度表をバイナリに付与する
