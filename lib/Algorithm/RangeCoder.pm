@@ -47,7 +47,9 @@ sub encode {
     return ${$self->out};
 }
 
-## FIXME: floating point arithmetic
+## FIXME: using floating point arithmetic
+## 1. Numbers are automatically converted to floating point format.
+## 2. 'use integer' treats integrals as signed but we want unsigned integers.
 sub div ($$) {
     my ($x, $y) = @_;
     floor($x/$y);
