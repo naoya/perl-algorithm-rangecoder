@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use base qw/Class::Accessor::Lvalue::Fast/;
 
-use Carp;
 use POSIX qw/floor/;
 use Data::Integer qw/uint uint_madd uint_min uint_cmp uint_shl uint_shr/;
 
@@ -179,3 +178,64 @@ sub div {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Algorithm::RangeCoder - Data compression with Range Coder
+
+=head1 SYNOPSIS
+
+  use Algorithm::RangeCoder;
+  use constant UCHAR_MAX => 0x100;
+
+  my $str = shift or die "usage: $0 <string>";
+
+  my @char = unpack('C*', $str);
+
+  my @freq;
+  for (my $i = 0; $i < UCHAR_MAX; $i++) {
+      $freq[$i] = 0;
+  }
+
+  for my $c (@char) {
+      $freq[$c]++;
+  }
+
+  my @cum = (0);
+  for (my $i = 0; $i < UCHAR_MAX; $i++) {
+      $cum[$i + 1] = $cum[$i] + $freq[$i];
+  }
+
+  my $rc = Algorithm::RangeCoder->new;
+  $rc->freq    = \@freq;
+  $rc->cumfreq = \@cum;
+
+  my $bin = $rc->encode($str);
+
+  say "origin:  ", $str;
+  say "decoded: ", $rc->decode( $bin );
+
+=head1 DESCRIPTION
+
+Range coder is an algorithm used for entropy coding in compression
+algorithms.
+
+=head1 SEE ALSO
+
+L<http://en.wikipedia.org/wiki/Range_encoding>
+
+=head1 AUTHOR
+
+Naoya Ito, E<lt>naoya at bloghackers.net<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2008 by Naoya Ito
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

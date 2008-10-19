@@ -1,11 +1,10 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-
 use FindBin::libs;
 use Perl6::Say;
+
 use Algorithm::RangeCoder;
-use Algorithm::RangeCoder::Util;
 
 use constant UCHAR_MAX => 0x100;
 

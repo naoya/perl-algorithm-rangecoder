@@ -30,4 +30,3 @@ $rc->freq    = \@freq;
 $rc->cumfreq = \@cum;
 
 $rc->encode($text);
-

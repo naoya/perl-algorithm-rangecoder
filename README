@@ -1,8 +1,51 @@
-http://codezine.jp/article/detail/443 を参考に実装した Pure Perl RangeCoder
+NAME
+    Algorithm::RangeCoder - Data compression with Range Coder
 
-* TODO
+SYNOPSIS
+      use Algorithm::RangeCoder;
+      use constant UCHAR_MAX => 0x100;
 
-- ストリームI/O対応 (ファイルハンドルを受け取って I/O)
-- 浮動小数点計算している乗算を unsigned int で計算
-- 出現頻度表をバイナリに付与する
-- http://labs.cybozu.co.jp/blog/kazuho/archives/2008/02/range_coder_eof.php
+      my $str = shift or die "usage: $0 <string>";
+
+      my @char = unpack('C*', $str);
+
+      my @freq;
+      for (my $i = 0; $i < UCHAR_MAX; $i++) {
+          $freq[$i] = 0;
+      }
+
+      for my $c (@char) {
+          $freq[$c]++;
+      }
+
+      my @cum = (0);
+      for (my $i = 0; $i < UCHAR_MAX; $i++) {
+          $cum[$i + 1] = $cum[$i] + $freq[$i];
+      }
+
+      my $rc = Algorithm::RangeCoder->new;
+      $rc->freq    = \@freq;
+      $rc->cumfreq = \@cum;
+
+      my $bin = $rc->encode($str);
+
+      say "origin:  ", $str;
+      say "decoded: ", $rc->decode( $bin );
+
+DESCRIPTION
+    Range coder is an algorithm used for entropy coding in compression
+    algorithms.
+
+SEE ALSO
+    <http://en.wikipedia.org/wiki/Range_encoding>
+
+AUTHOR
+    Naoya Ito, <naoya at bloghackers.net<gt>
+
+COPYRIGHT AND LICENSE
+    Copyright (C) 2008 by Naoya Ito
+
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself, either Perl version 5.8.8 or, at
+    your option, any later version of Perl 5 you may have available.
+
